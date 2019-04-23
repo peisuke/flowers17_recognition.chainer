@@ -7,20 +7,27 @@ from chainer import training
 from chainer.training import extensions
 
 
-class MLP(chainer.Chain):
+class SimpleNet(chainer.Chain):
 
     def __init__(self, n_out):
-        super(MLP, self).__init__()
+        super(SimpleNet, self).__init__()
         with self.init_scope():
-            # the size of the inputs to each layer will be inferred
-            self.l1 = L.Linear(None, 50)  # n_in -> n_units
-            self.l2 = L.Linear(None, 50)  # n_units -> n_units
-            self.l3 = L.Linear(None, n_out)  # n_units -> n_out
-
+            self.c1 = L.Convolution2D(None, 32, 7)
+            self.b1 = L.BatchNormalization(32)
+            self.c2 = L.Convolution2D(None, 64, 5)
+            self.b2 = L.BatchNormalization(64)
+            self.c3 = L.Convolution2D(None, 64, 3)
+            self.b3 = L.BatchNormalization(64)
+            self.fc4 = L.Linear(None, 256)
+            self.fc5 = L.Linear(None, n_out)
+            
     def forward(self, x):
-        h1 = F.relu(self.l1(x))
-        h2 = F.relu(self.l2(h1))
-        return self.l3(h2)
+        h = F.relu(self.b1(self.c1(x)))
+        h = F.relu(self.b2(self.c2(h)))
+        h = F.relu(self.b3(self.c3(h)))
+        h = F.relu(self.fc4(h))
+        return self.fc5(h)
+
 
 def main():
     # Data preperation
@@ -33,7 +40,7 @@ def main():
     nb_train = 8 * nb_data // 10
     dataset = [(files[i], labels[i]) for i in indices]
     
-    model = L.Classifier(MLP(17))
+    model = L.Classifier(SimpleNet(17))
 
     use_gpu = -1
     if use_gpu >= 0:
