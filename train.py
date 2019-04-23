@@ -29,20 +29,21 @@ class SimpleNet(chainer.Chain):
         return self.fc5(h)
 
 
-def main():
+#def main():
+def handler(context):
     # Data preperation
-    files = sorted(glob.glob('images/*.jpg'))
+    files = sorted(glob.glob('/mnt/notebooks/1745249968478/images1/*.jpg'))
     nb_data = len(files)
     nb_data_per_class = len(files) // 17
     labels = np.arange(nb_data) // nb_data_per_class
     indices = np.arange(nb_data)
-    np.random.permutation(indices)
+    indices = np.random.permutation(indices)
     nb_train = 8 * nb_data // 10
     dataset = [(files[i], labels[i]) for i in indices]
     
     model = L.Classifier(SimpleNet(17))
 
-    use_gpu = -1
+    use_gpu = 0
     if use_gpu >= 0:
         chainer.backends.cuda.get_device_from_id(use_gpu).use()
         model.to_gpu()
